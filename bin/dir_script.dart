@@ -2,12 +2,21 @@ import 'dart:io';
 
 Future<void> printDirectoryFiles(Directory dir, int level) async {
   final String indentation = '  ' * level;
-  await Future.forEach(await dir.list(recursive: false).toList(),
-      (entity) async {
+  final List<FileSystemEntity> entities =
+      await dir.list(recursive: false).toList();
+
+  final List<Directory> directories = entities.whereType<Directory>().toList();
+  directories.sort((a, b) => a.path.compareTo(b.path));
+
+  await Future.forEach(directories, (entity) async {
     print('$indentation - ${entity.path}');
-    if (entity is Directory) {
-      await printDirectoryFiles(entity, level + 1);
-    }
+    await printDirectoryFiles(entity, level + 1);
+  });
+
+  final List<File> files = entities.whereType<File>().toList();
+  files.sort((a, b) => a.path.compareTo(b.path));
+  await Future.forEach(files, (entity) async {
+    print('$indentation - ${entity.path}');
   });
 }
 
